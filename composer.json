@@ -1,0 +1,17 @@
+{
+    "name": "joela/13-bienesraices-crud_poo",
+    "description": "Creanod un proyecto con POO",
+    "type": "project",
+    "authors": [
+        {
+            "name": "joelcascar",
+            "email": "joel.adcascar@gmail.com"
+        }
+    ],
+    "require": {},
+    "autoload": {
+        "psr-4":{
+            "App\\": "./classes"
+        }
+    }
+}
