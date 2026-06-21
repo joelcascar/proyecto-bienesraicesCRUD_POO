@@ -2,6 +2,10 @@
 require '../../includes/app.php';
 
 use App\Propiedad;
+// Importamos el driver del manager de imagenes.
+use Intervention\Image\Drivers\Gd\Driver;
+// Importamos el manejador de imagenes y el alias se va a llamr image
+use Intervention\Image\ImageManager as Image;
 
 // Verificamos si la sesión esta abierta
 estaAutenticado();
@@ -28,116 +32,56 @@ $habitaciones = "";
 $wc = "";
 $estacionamiento = "";
 $vendedores_id = "";
+$imagen = '';
 
 
 // Arreglo de errores.
-$errores = [];
+$errores = Propiedad::getErrores();
 
 // Manejamos los datos que llegan del formulario
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
+    // Instanciamos la clase propiedad y le añadimos los datos del formulario.
     $propiedad = new Propiedad($_POST);
 
-    $propiedad->guardar();
-    // debuguear($propiedad);
-    // echo '<pre>';
-    // var_dump($_POST);
-    // echo '<pre>';
+    // 1 Generar nombre único a la imagen.
+    $nombreImagen = md5(uniqid(rand(), true)) . ".jpg"; // Este nombre lo pasamos a la consulta SQL.
 
-    // Para consultar las propiedades de los archivos que fueron enviados.
-    // echo '<pre>';
-    // var_dump($_FILES);
-    // echo '<pre>';
-
-    // Almacenamos los valores recibidos desde el formulario.
-    $titulo = mysqli_real_escape_string($db, $_POST['titulo']); // Le agregamos la función mysqli_real_scape_string() 
-    $precio = mysqli_real_escape_string($db, $_POST['precio']);
-    $descripcion = mysqli_real_escape_string($db, $_POST['descripcion']);
-    $creado = date('Y-m-d');
-    $habitaciones = mysqli_real_escape_string($db, $_POST['habitaciones']);
-    $wc = mysqli_real_escape_string($db, $_POST['wc']);
-    $estacionamiento = mysqli_real_escape_string($db, $_POST['estacionamiento']);
-    $vendedores_id = mysqli_real_escape_string($db, $_POST['vendedores_id']);
-
-    // Asignar $_FILES a una veriable
-    $imagen = $_FILES['imagen'];
-
-    // echo '<pre>';
-    // var_dump($imagen);
-    // echo '<pre>';
-
-    // validaciones antes de realizar la consulta
-    if (!$titulo) {
-        $errores[] = "ERROR: El título es obligatorio";
-    };
-    if (!$precio) {
-        $errores[] = "ERROR: El precio es obligatorio";
-    };
-    if (!$descripcion) {
-        $errores[] = "ERROR: La descripción es obligatoria";
-    };
-    if (strlen($descripcion) < 50) {
-        $errores[] = "ERROR: La descripción no cumple con al menos 50 caracteres";
-    };
-    if (strlen($descripcion) > 250) {
-        $errores[] = "ERROR: La descripción excede el limite de 250 carácteres permitidos";
-    };
-    if (!$habitaciones) {
-        $errores[] = "ERROR: El Número de habitaciones es obligatorio";
-    };
-    if (!$wc) {
-        $errores[] = "ERROR: El número de baños es obligatorio";
-    };
-    if (!$estacionamiento) {
-        $errores[] = "ERROR: El número de lugares de estacionamiento es obligatorio";
-    };
-
-    if ($vendedores_id == "") {
-        $errores[] = "ERROR: El vendedor es obligatorio";
-    };
-
-    // Validación de la imagen
-
-    if ($imagen['name'] == "") {
-        $errores[] = "Error: la imagen es obligatoria";
+    // 2 Leemos la imagen
+    if ($_FILES['imagen']['tmp_name']) {
+        // Configuramos el manager de imagenes con el drive por defecto.
+        $manager = Image::usingDriver(Driver::class); // el Driver::class me asignara el driver por defecto.
+        // Leemos la imagen
+        $imagen = $manager->decode($_FILES['imagen']['tmp_name']);
+        // Cambiamos el tamaño de la imagen
+        $imagen->cover(800, 600); // Primero pone el tamaño de la imgen, despues lo coloca en el centro y corta el exceso.
+        // Asignamos el nombre mediante el método setImagen()
+        $propiedad->setImagen($nombreImagen); // vamos a agregar el nombre de la imagen a la instancia actual ($propiedad).
     }
 
-    // Convertir Bytes a KBytes
-    $medida = 1000 * 1000;
-
-    if ($imagen['size'] > $medida) {
-        $errores[] = "Error: la imagen pesa más de 500 KB";
-    }
-
-    // echo "<pre>";
-    // var_dump($errores);
-    // echo "<pre>";
-
-    // Revisamos si el arreglo de errores esta vacio, si esta vacio realiza la consulta.
+    // Validamos si hay errores cunado se mando el formulario.
+    $errores = $propiedad->validar();
+    // Si el arreglo $errores esta vacio guarda los datos.
     if (empty($errores)) {
-
         // Subir archivos al servidor
-        // 1. creamos la carpeta
-        $carpetaImagenes = '../../imagenesDB';
-
-        if (!is_dir($carpetaImagenes)) { // is_dir(ruta); me devuelve true si la carpeta existe y false si la carpeta no existe.
-            mkdir($carpetaImagenes); // Crea la carpeta en la ubicación establecida.
+        if (!is_dir(CARPETA_IMAGENES)) { // is_dir(ruta); me devuelve true si la carpeta existe y false si la carpeta no existe.
+            mkdir(CARPETA_IMAGENES); // Crea la carpeta en la ubicación establecida.
         }
+        // 3 Guardamos la imagen en el servidor
+        $imagen->save(CARPETA_IMAGENES . $nombreImagen);
+        // Insertamos los datos en la base de datos.
+        $resultado = $propiedad->guardar();
 
-        // 2 subir la imagen a la carpeta creada
-        // Generar nombre único.
-        $nombreImagen = md5(uniqid(rand(), true)) . ".jpg"; // Este nombre lo pasamos a la consulta SQL.
-        // Mover la imagen de la carpeta temporal a la carpeta creada con el nombre único
-        move_uploaded_file($imagen['tmp_name'], $carpetaImagenes . "/{$nombreImagen}");
-
-        // Ejecutar el script en MySQL
-        $resultado = mysqli_query($db, $query);
         if ($resultado) {
             // Redireccionar al usuario una vez ingresados los datos.
             // Se debe de utilizar poco. 
             header('location: /admin?resultado=1'); // ?resultado=1 vamos a poderlo manejar con $_GET
         }
     }
+
+
+    // Asignar $_FILES a una veriable
+    $imagen = $_FILES['imagen'];
 }
 
 incluirTemplate('header');
