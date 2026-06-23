@@ -25,14 +25,14 @@ class Propiedad
     {
         $this->id = $args['id'] ?? NULL;
         $this->titulo = $args['titulo'] ?? '';
-        $this->precio = $args['precio'] ?? 0;
+        $this->precio = $args['precio'] ?? '';
         $this->imagen = $args['imagen'] ?? '';
         $this->descripcion = $args['descripcion'] ?? '';
-        $this->habitaciones = $args['habitaciones'] ?? 0;
-        $this->wc = $args['wc'] ?? 0;
-        $this->estacionamiento = $args['estacionamiento'] ?? 0;
+        $this->habitaciones = $args['habitaciones'] ?? '';
+        $this->wc = $args['wc'] ?? '';
+        $this->estacionamiento = $args['estacionamiento'] ?? '';
         $this->creado = $args['creado'] ?? date('Y-m-d');
-        $this->vendedores_id = $args['vendedores_id'] ?? 0;
+        $this->vendedores_id = $args['vendedores_id'] ?? 1;
     }
 
     public static function establecerDB($db)
@@ -41,7 +41,20 @@ class Propiedad
         self::$db = $db;
     }
 
+    // método para saber si se va a crear o actualizar una propiedad
     public function guardar()
+    {
+        if (isset($this->id)) {
+            // actualizamos una propiedad  
+            $this->actualizar();
+        } else {
+            // creamos una propiedad
+            $this->crear();
+        }
+    }
+
+    // método para crear una propiedad
+    public function crear()
     {
         // Sanitizar los datos
         $atributos = $this->sanitizarDatos();
@@ -53,6 +66,33 @@ class Propiedad
 
         // Realizamos la consulta
         return self::$db->query($consulta);
+    }
+
+    // método para actualizar una propiedad
+    public function actualizar()
+    {
+        // sanitizamos los atributos
+        $atributos = $this->sanitizarDatos();
+
+        $valores = [];
+        foreach ($atributos as $p => $v) {
+            $valores[] = "$p = '$v'";
+        }
+
+        // formulaamos la consulta
+        $consulta = "UPDATE propiedades SET ";
+        $consulta .= join(", ", $valores);
+        $consulta .= " WHERE id = '" . self::$db->escape_string($this->id) . "' ";
+        $consulta .= "LIMIT 1;";
+
+        // Ejecutamos la consulta
+        $query = self::$db->query($consulta);
+
+        if ($query) {
+            // Redireccionar al usuario una vez ingresados los datos.
+            // Se debe de utilizar poco. 
+            header('location: /admin?resultado=2'); // ?resultado=1 vamos a poderlo manejar con $_GET
+        }
     }
 
     // Esta función sirve para unir los atributos en un arreglo asociativo
@@ -97,6 +137,9 @@ class Propiedad
         if (!$this->precio) {
             self::$errores[] = "ERROR: El precio es obligatorio";
         };
+        if ($this->precio > 100000000) {
+            self::$errores[] = "ERROR: El precio supera el limite permitido";
+        };
         if (!$this->descripcion) {
             self::$errores[] = "ERROR: La descripción es obligatoria";
         };
@@ -131,8 +174,75 @@ class Propiedad
 
     public function setImagen($imagen)
     {
+        // Eliminamos la imagen anterior 
+        if (isset($this->id)) {
+            // Comprobar si existe el archivo
+            $existeArchivo = file_exists(CARPETA_IMAGENES . $this->imagen);
+            if ($existeArchivo) {
+                unlink(CARPETA_IMAGENES . $this->imagen);
+            }
+        }
+        // Asignamos el nombre de la imagen al atributo de la instancia
         if ($imagen) {
             $this->imagen = $imagen;
+        }
+    }
+
+    // método para listar todos los registros
+    public static function all()
+    {
+        $consulta = "SELECT * FROM propiedades";
+        $query = self::consultarSQL($consulta);
+        return $query;
+    }
+
+    // método para buscar un registro
+    public static function find($id)
+    {
+
+        $consulta = "SELECT * FROM propiedades WHERE id = $id;";
+        $query = self::consultarSQL($consulta);
+        return array_shift($query);
+    }
+
+    // método estático para realizar la consulta
+    public static function consultarSQL($query)
+    {
+        // Primero realizamos la consulta sql
+        $query = self::$db->query($query);
+        // Segundo iteramos sobre los resultados
+        // array me va a devolver un arreglo de objetos
+        $array = [];
+        while ($registro = $query->fetch_assoc()) {
+            $array[] = self::crearObjeto($registro);
+        }
+        // tercero liberamos la memoria (opcional)
+        $query->free();
+        // cuarto retornar los resultados
+        return $array;
+    }
+    // este método estático me va a devolver un objeto de cada registro.
+    protected static function crearObjeto($registro)
+    {
+        // Creamos una instancia de esta clase (Propiedad).
+        $objeto = new self;
+        // iteramos el arreglo asociativo para convertirlo en objeto
+        foreach ($registro as $p => $v) {
+            if (property_exists($objeto, $p)) {
+                $objeto->$p = $v;
+            }
+        }
+        // Devolvemos el objeto creado
+        return $objeto;
+    }
+
+    // método sincronizar para poner los nuevos cambios en el objeto actual.
+    public function sincronizar($arr = []): void
+    {
+        foreach ($arr as $p => $v) {
+            if (property_exists($this, $p) && !is_null($v)) {
+                $this->$p = $v;
+            }
         }
     }
 }

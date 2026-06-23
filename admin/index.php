@@ -2,17 +2,12 @@
 
 require '../includes/app.php';
 // Verificamos si la sesión esta abierta
-$auth = estaAutenticado();
+estaAutenticado();
 
-// consulta a la base de datos
+use App\Propiedad;
 
-$db = conectarDB();
-// Definimos la consulta a la base de datos
-$consulta = "SELECT * FROM propiedades;";
-// ejecutamos la consulta
-$query = mysqli_query($db, $consulta);
-
-
+// método estático all() para obtener todas las propiedades de la base de datos
+$query = Propiedad::all();
 
 $resultado = $_GET["resultado"] ?? NULL; // obtenemos lo que nos manda cuando realizamos la inserción.
 
@@ -71,28 +66,23 @@ incluirTemplate('header');
             </tr>
         </thead>
         <tbody>
-            <?php while ($row = mysqli_fetch_assoc($query)) { ?>
+            <?php foreach ($query as $propiedad) { ?>
                 <tr>
-                    <td><?php echo $row['id']; ?></td>
-                    <td><?php echo $row['titulo']; ?></td>
-                    <td> <img src="/imagenesDB/<?php echo $row['imagen']; ?>" alt="" class="imagen_tabla"></td>
-                    <td>$ <?php echo $row['precio']; ?></td>
+                    <td><?php echo $propiedad->id; ?></td>
+                    <td><?php echo $propiedad->titulo; ?></td>
+                    <td> <img src="/imagenesDB/<?php echo $propiedad->imagen; ?>" alt="" class="imagen_tabla"></td>
+                    <td>$ <?php echo $propiedad->precio; ?></td>
                     <td>
                         <form method="POST" class="w-100">
-                            <input type="hidden" name="id" value="<?php echo $row['id']; ?>">
+                            <input type="hidden" name="id" value="<?php echo $propiedad->id; ?>">
                             <input type="submit" class="boton-rojo-block" value="Eliminar">
                         </form>
-                        <a href="/admin/propiedades/actualizar.php?id=<?php echo $row['id']; ?>" class="boton-amarillo-block">Actualizar</a>
+                        <a href="/admin/propiedades/actualizar.php?id=<?php echo $propiedad->id; ?>" class="boton-amarillo-block">Actualizar</a>
                     </td>
                 </tr>
             <?php } ?>
         </tbody>
     </table>
 </main>
-
-<?php
-// Opcional cerrar la conexión de la base de datos
-mysqli_close($db);
-?>
 
 <?php incluirTemplate('footer') ?>
