@@ -26,8 +26,6 @@ $errores = Propiedad::getErrores();
 // Manejamos los datos que llegan del formulario
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-
-
     // Instanciamos la clase propiedad y le añadimos los datos del formulario.
     $propiedad = new Propiedad($_POST['propiedad']);
 
@@ -57,13 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // 3 Guardamos la imagen en el servidor
         $imagen->save(CARPETA_IMAGENES . $nombreImagen);
         // Insertamos los datos en la base de datos.
-        $resultado = $propiedad->guardar();
-
-        if ($resultado) {
-            // Redireccionar al usuario una vez ingresados los datos.
-            // Se debe de utilizar poco. 
-            header('location: /admin?resultado=1'); // ?resultado=1 vamos a poderlo manejar con $_GET
-        }
+        $propiedad->guardar();
     }
 }
 

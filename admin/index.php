@@ -19,21 +19,11 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
 
     if ($id) {
 
-        // Eliminar el archivo
-        // 1 realizamos una consulta para saber a quien vamos a eliminar.
-        $consulta = "SELECT imagen FROM propiedades WHERE id = $id;";
-        $query = mysqli_query($db, $consulta);
-        $propiedad = mysqli_fetch_assoc($query);
+        // 1 obtenemos el objeto de propiedad
+        $propiedad = Propiedad::find($id);
 
-        // 2 Eliminamos el archivo
-        unlink("../imagenesDB/{$propiedad['imagen']}");
-        // Eliminamos la propiedad
-        $consulta = "DELETE FROM propiedades WHERE id = $id;";
-        $query = mysqli_query($db, $consulta);
-
-        if ($query) {
-            header("location: /admin?resultado=3");
-        }
+        // 2 Eliminamos la propiedad con el método eliminar()
+        $propiedad->eliminar();
     }
 }
 
