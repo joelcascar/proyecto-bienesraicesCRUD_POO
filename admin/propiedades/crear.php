@@ -2,6 +2,7 @@
 require '../../includes/app.php';
 
 use App\Propiedad;
+use App\Vendedor;
 // Importamos el driver del manager de imagenes.
 use Intervention\Image\Drivers\Gd\Driver;
 // Importamos el manejador de imagenes y el alias se va a llamr image
@@ -13,12 +14,8 @@ estaAutenticado();
 // Creamos una instancia de propiedad sin inicializar los atributos
 $propiedad = new Propiedad;
 
-// base de datos
-$db = conectarDB();
-
-// Consulta para obtener vendedores de la base de datos.
-$sql = "SELECT * FROM vendedores;";
-$query = mysqli_query($db, $sql);
+// Obtenemos todos los vendedores
+$vendedores = Vendedor::all();
 
 // Arreglo de errores.
 $errores = Propiedad::getErrores();
