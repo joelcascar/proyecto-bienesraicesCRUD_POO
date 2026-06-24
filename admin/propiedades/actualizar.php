@@ -4,6 +4,8 @@ require '../../includes/app.php';
 estaAutenticado();
 
 use App\Propiedad;
+use App\Vendedor;
+
 // Importamos el driver del manager de imagenes.
 use Intervention\Image\Drivers\Gd\Driver;
 // Importamos el manejador de imagenes y el alias se va a llamr image
@@ -23,11 +25,8 @@ if (!$id) {
 // me devolvera un arreglo de un objeto.
 $propiedad = Propiedad::find($id);
 
-// consulta para vendedores
-$consulta = "SELECT * FROM vendedores;";
-// realizar la consulta
-$res = mysqli_query($db, $consulta);
-
+// traemos todos los vendedores
+$vendedores = Vendedor::all();
 
 // Arreglo de errores.
 $errores = Propiedad::getErrores();
@@ -53,9 +52,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // validación subida de imagenes
     // 1 Generar nombre único a la imagen.
     $nombreImagen = md5(uniqid(rand(), true)) . ".jpg"; // Este nombre lo pasamos a la consulta SQL.
+    // 2 Leemos la imagen
 
     $imagen = NULL;
-    // 2 Leemos la imagen
+
     if ($_FILES['propiedad']['tmp_name']['imagen']) {
         // Configuramos el manager de imagenes con el drive por defecto.
         $manager = Image::usingDriver(Driver::class); // el Driver::class me asignara el driver por defecto.
@@ -69,8 +69,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Revisamos si el arreglo de errores esta vacio, si esta vacio realiza la consulta.
     if (empty($errores)) {
-        // Guardamos la imagen en la carpeta
-        $imagen->save(CARPETA_IMAGENES . $nombreImagen);
+        if ($_FILES['propiedad']['tmp_name']['imagen']) {
+            // Guardamos la imagen en la carpeta
+            $imagen->save(CARPETA_IMAGENES . $nombreImagen);
+        }
         // Actualizamos la propiedad en la base de datos.
         $propiedad->guardar();
     }

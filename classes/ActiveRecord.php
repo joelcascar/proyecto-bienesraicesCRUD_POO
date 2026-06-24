@@ -99,7 +99,7 @@ class ActiveRecord
     {
         $atributos = [];
 
-        foreach (self::$columnasDB as $columna) {
+        foreach (static::$columnasDB as $columna) {
             if ($columna === 'id') continue; // en caso de que $columna sea igual a id se va a pasar a la siguiente interacción.
             $atributos[$columna] = $this->$columna;
         }
@@ -169,7 +169,7 @@ class ActiveRecord
     public static function find($id)
     {
 
-        $consulta = "SELECT * FROM " . static::$tabla . " WHERE id = $id;";
+        $consulta = "SELECT * FROM " . static::$tabla . " WHERE id = " . $id . ";";
         $query = self::consultarSQL($consulta);
         return array_shift($query);
     }
@@ -183,7 +183,7 @@ class ActiveRecord
         // array me va a devolver un arreglo de objetos
         $array = [];
         while ($registro = $query->fetch_assoc()) {
-            $array[] = self::crearObjeto($registro);
+            $array[] = static::crearObjeto($registro);
         }
         // tercero liberamos la memoria (opcional)
         $query->free();

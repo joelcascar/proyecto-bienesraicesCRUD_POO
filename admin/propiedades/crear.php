@@ -49,8 +49,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!is_dir(CARPETA_IMAGENES)) { // is_dir(ruta); me devuelve true si la carpeta existe y false si la carpeta no existe.
             mkdir(CARPETA_IMAGENES); // Crea la carpeta en la ubicación establecida.
         }
-        // 3 Guardamos la imagen en el servidor
-        $imagen->save(CARPETA_IMAGENES . $nombreImagen);
+        if ($_FILES['propiedad']['tmp_name']['imagen']) {
+            // 3 Guardamos la imagen en el servidor
+            $imagen->save(CARPETA_IMAGENES . $nombreImagen);
+        }
         // Insertamos los datos en la base de datos.
         $propiedad->guardar();
     }
