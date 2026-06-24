@@ -10,8 +10,6 @@ use App\Vendedor;
 use Intervention\Image\Drivers\Gd\Driver;
 // Importamos el manejador de imagenes y el alias se va a llamr image
 use Intervention\Image\ImageManager as Image;
-// base de datos
-$db = conectarDB();
 // Validar un ID
 // 1 Obtenemos el id de la propiedad
 $id = $_GET['id'];

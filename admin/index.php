@@ -4,14 +4,15 @@ require '../includes/app.php';
 // Verificamos si la sesión esta abierta
 estaAutenticado();
 
+// Impoortar las clases
 use App\Propiedad;
 use App\Vendedor;
 
 // método estático all() para obtener todas las propiedades de la base de datos
 $query = Propiedad::all();
 $vendedores = Vendedor::all();
-
-$resultado = $_GET["resultado"] ?? NULL; // obtenemos lo que nos manda cuando realizamos la inserción.
+// obtenemos lo que nos manda cuando realizamos la consulta.
+$resultado = $_GET["resultado"] ?? NULL;
 
 
 // Código para eliminar una propiedad
@@ -45,15 +46,12 @@ incluirTemplate('header');
 
 <main class="contenedor seccion">
     <h1>Administrador de Bienes Raices</h1>
-    <?php if (intval($resultado) === 1) { ?>
-        <p class="alerta exito">creado correctamente</p>
-    <?php }
-    if (intval($resultado) === 2) { ?>
-        <p class="alerta exito">actualizado correctamente</p>
+    <!-- Mostrar las notificaciones de creado, actualizado y eliminado -->
+    <?php $mensaje = mostrarNotificacion(intval($resultado));
+    if ($mensaje) { ?>
+        <p class="alerta exito"><?php echo s($mensaje); ?></p>
     <?php } ?>
-    <?php if (intval($resultado) === 3) { ?>
-        <p class="alerta exito">eliminado correctamente</p>
-    <?php } ?>
+
 
     <a href="/admin/propiedades/crear.php" class="boton-verde">Nueva Propiedad</a>
     <a href="/admin/vendedores/crear.php" class="boton-amarillo">Nuevo Vendedor</a>
