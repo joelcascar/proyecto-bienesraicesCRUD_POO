@@ -33,7 +33,8 @@ incluirTemplate("header", true);
     <h2>Casas y Depas en Venta</h2>
 
     <?php
-    incluirTemplate("anuncios", false, 3);
+    $limite = 3;
+    include "includes/templates/anuncios.php";
     ?>
 
     <div class="alinear-derecha">

@@ -80,7 +80,7 @@ incluirTemplate('header');
                 <input type="password" id="password" placeholder="Tu password" name="password">
             </div>
         </fieldset>
-        <input type="submit" class="boton-verde" value="Iniciar Sesión">
+        <input type="submit" class="b boton-verde" value="Iniciar Sesión">
     </form>
 </main>
 

@@ -30,9 +30,14 @@
 .contenido-anuncio{
     
     padding: 2rem;
+    .tamaño-titulo{
+        text-align: center;
+        height: 10rem;
+    }
     .tamaño_descripcion{
         text-align: justify;
         height: 15rem;
+        overflow: hidden;
     }
 }
 

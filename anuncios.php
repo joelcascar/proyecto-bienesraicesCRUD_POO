@@ -7,7 +7,8 @@ incluirTemplate('header');
     <h2>Casas y Depas en Venta</h2>
 
     <?php
-    incluirTemplate("anuncios", false, 10); ?>
+    $limite = 10;
+    include "includes/templates/anuncios.php" ?>
 
 </main>
 

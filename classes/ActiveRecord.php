@@ -165,6 +165,14 @@ class ActiveRecord
         return $query;
     }
 
+    // Método para obtener una cantidad de registros
+    public static function get($cantidad)
+    {
+        $consulta = "SELECT * FROM " . static::$tabla . " LIMIT " . $cantidad . ";";
+        $query = self::consultarSQL($consulta);
+        return $query;
+    }
+
     // método para buscar un registro
     public static function find($id)
     {
